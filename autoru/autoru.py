@@ -19,7 +19,6 @@ class Advert:
         cls.mapper = mapper
 
     def __init__(self, ad: dict):
-        print(ad)
         self.mark = ad['vehicle_info']['mark_info']['name']
         self.mark_code = ad['vehicle_info']['mark_info']['code'].lower()
         self.model = ad['vehicle_info']['model_info']['name']
@@ -94,7 +93,7 @@ class AutoRu:
     def get_ads(self, user_id, search_params) -> list:
         parameters = self.prepare_search_params(search_params)
         with retry_session().post(self.search_url, json=parameters, headers=self.headers) as response:
-            ads = response.json()['offers']
+            ads = list(filter(lambda advert: advert['services'] == [], response.json()['offers']))
         last = self.users[user_id].get('_autoru_last')
         new = ads[0]['additional_info']['creation_date']
         if last and new < last:

@@ -1,3 +1,4 @@
+import logging
 import os
 import random
 from typing import Union, Optional
@@ -11,6 +12,8 @@ from common.network import retry_session
 
 RAND_MAX = 2000000000
 
+logger = logging.getLogger('vk_api')
+
 
 class MyVkBotLongPoll(VkLongPoll):
     def __init__(self, vk_session):
@@ -22,7 +25,7 @@ class MyVkBotLongPoll(VkLongPoll):
                 for event in self.check():
                     yield event
             except Exception as e:
-                print('Longpoll Error (VK):', e)
+                logger.exception(e)
 
 
 class VKapi:
