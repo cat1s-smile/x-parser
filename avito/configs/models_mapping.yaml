@@ -1,0 +1,18 @@
+LADA:
+  api: 329315
+  PRIORA:
+    api: 330581
+  GRANTA:
+    api: 330168
+
+VOLKSWAGEN:
+  api: 329308
+  POLO:
+    api: 330564
+    V:
+      api: 334889
+
+HYUNDAI:
+  api: 403153
+  ACCENT:
+    api: 403154

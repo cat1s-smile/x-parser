@@ -1,0 +1,17 @@
+140279932:
+  catalog_filter:
+  - mark: LADA
+    model: PRIORA
+  - mark: LADA
+    model: GRANTA
+  - mark: HYUNDAI
+    model: ACCENT
+  - mark: VOLKSWAGEN
+    model: POLO
+    generation: V
+  price_from: 200000
+  price_to: 500000
+  regions:
+  - saratov_obl
+  - samara_obl
+# has_image: False

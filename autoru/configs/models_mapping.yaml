@@ -1,0 +1,26 @@
+LADA:
+  api: VAZ
+  url: vaz
+  PRIORA:
+    api: 2170
+    url: 2170
+  GRANTA:
+    api: GRANTA
+    url: granta
+
+VOLKSWAGEN:
+  api: VOLKSWAGEN
+  url: volksvagen
+  POLO:
+    api: POLO
+    url: polo
+    V:
+      api: 5019213
+      url: 5019213
+
+HYUNDAI:
+  api: HYUNDAI
+  url: hyundai
+  ACCENT:
+    api: ACCENT
+    url: accent
