@@ -2,15 +2,24 @@
   catalog_filter:
   - mark: LADA
     model: PRIORA
+    mileage_max: 130000
+    price_from: 200000
+    price_to: 370000
   - mark: LADA
     model: GRANTA
+    mileage_max: 130000
+    price_from: 200000
+    price_to: 370000
   - mark: HYUNDAI
     model: ACCENT
+    mileage_max: 130000
+    price_from: 200000
+    price_to: 370000
   - mark: VOLKSWAGEN
     model: POLO
     generation: V
   price_from: 200000
-  price_to: 500000
+  price_to: 420000
   regions:
   - saratov_obl
   - samara_obl

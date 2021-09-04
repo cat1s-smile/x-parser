@@ -62,6 +62,8 @@ class Avito:
             criterion["params[110001]"] = self.mapper.models[crit['mark']][crit['model']]['api']
         if 'generation' in crit:
             criterion["params[110005]"] = self.mapper.models[crit['mark']][crit['model']][crit['generation']]['api']
+        if 'mileage_max' in crit:
+            criterion["params[1375-to-int]"] = crit['mileage_max']
         return criterion
 
     def prepare_search_params(self, params: dict) -> list:  # list of requests instead of 1 like in autoru
