@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+from time import sleep
 
 import yaml
 from typing import Tuple
@@ -65,7 +66,7 @@ class AutoRu:
         self.logger = logging.getLogger('autoru')
         Advert.init(self.advert_url, self.mapper)
 
-    def _get_search_criterion(self, crit) -> dict:
+    def get_catalog_filter(self, crit) -> dict:
         search_criterion = {}
         if 'mark' in crit:
             search_criterion["mark"] = self.mapper.models[crit['mark']]['api']
@@ -75,42 +76,89 @@ class AutoRu:
             search_criterion["generation"] = self.mapper.models[crit['mark']][crit['model']][crit['generation']]['api']
         return search_criterion
 
-    def prepare_search_params(self, params: dict) -> dict:
-        catalog_filter = [self._get_search_criterion(criterion) for criterion in params['catalog_filter']]
+    def get_search_criterion(self, crit):
+        criterion = {}
+        catalog_filter = [self.get_catalog_filter(criterion) for criterion in crit]
+        criterion['catalog_filter'] = catalog_filter
+        if 'mileage_max' in crit:
+            criterion["params[1375-to-int]"] = crit['mileage_max']
+        if 'year_from' in crit:
+            criterion["year_from"] = crit['year_from']
+        if 'year_to' in crit:
+            criterion["year_to"] = crit['year_to']
+        if 'price_from' in crit:
+            criterion["price_from"] = crit['price_from']
+        if 'price_to' in crit:
+            criterion["price_to"] = crit['price_to']
+        return criterion
+
+    def prepare_search_params(self, params: dict) -> list:
+        filters = self.merge_filters(params)
+        search_criteria = [self.get_search_criterion(filter_) for filter_ in filters]
         regions = [self.mapper.regions[region] for region in params['regions']]
-        prepared_params = {
-            'catalog_filter': catalog_filter,
-            'price_from': params['price_from'],
-            'price_to': params['price_to'],
-            'section': "all",
-            'category': "cars",
-            'sort': "cr_date-desc",
-            'geo_id': regions,
-            'page': "a"
-        }
+        prepared_params = []
+        for crit in search_criteria:
+            prepared_params.append({
+                    'price_from': params['price_from'],
+                    'price_to': params['price_to'],
+                    **crit,
+                    'section': "all",
+                    'category': "cars",
+                    'sort': "cr_date-desc",
+                    'geo_id': regions,
+                    'page': "a"
+                })
         return prepared_params
 
     def get_ads(self, user_id, search_params) -> list:
-        parameters = self.prepare_search_params(search_params)
-        with retry_session().post(self.search_url, json=parameters, headers=self.headers) as response:
-            ads = list(filter(lambda advert: advert['services'] == [], response.json()['offers']))
+        parameters_list = self.prepare_search_params(search_params)
+        ads = []
+        with retry_session() as session:
+            session.headers.update(self.headers)
+            for parameters in parameters_list:
+                response = session.post(self.search_url, json=parameters, headers=self.headers)
+                results = list(filter(lambda advert: advert['services'] == [], response.json()['offers']))
+                ads.extend(results)
+                sleep(15)
+        sorted_ads = sorted(ads, key=lambda advert: advert['additional_info']['creation_date'], reverse=True)
         last = self.users[user_id].get('_autoru_last')
-        new = ads[0]['additional_info']['creation_date']
+        new = sorted_ads[0]['additional_info']['creation_date']
         if last and new < last:
-            self.logger.info(f'piesashit {ads[0]["lk_summary"]}')
+            self.logger.info(f'piesashit {sorted_ads[0]["lk_summary"]}')
             return []
         else:
             self.users[user_id]['_autoru_last'] = new
         if not last:
-            return [Advert(ads[0]).get_info()]
+            return [Advert(sorted_ads[0]).get_info()]
         else:
             new_ads = []
-            for ad in ads:
+            for ad in sorted_ads:
                 if ad['additional_info']['creation_date'] <= last:
                     break
                 else:
                     new_ads.append(Advert(ad).get_info())
             if not new_ads:
-                self.logger.info(f'already newest {ads[0]["lk_summary"]}')
+                self.logger.info(f'already newest {sorted_ads[0]["lk_summary"]}')
             return new_ads
         # return [Advert(ads[0]).get_info()]
+
+    def merge_filters(self, params):
+        filters = []
+        params = [[item, False] for item in params['catalog_filter']]
+        for filter1 in params:
+            if filter1[1]:
+                continue
+            filters_ = [filter1[0]]
+            filter1[1] = True
+            for filter2 in params:
+                if filter2[1]:
+                    continue
+                if filter1[0].get('price_from') == filter2[0].get('price_from') and \
+                        filter1[0].get('price_to') == filter2[0].get('price_to') and \
+                        filter1[0].get('year_from') == filter2[0].get('year_from') and \
+                        filter1[0].get('year_to') == filter2[0].get('year_to') and \
+                        filter1[0].get('mileage_max') == filter2[0].get('mileage_max'):
+                    filters_.append(filter2[0])
+                    filter2[1] = True
+            filters.append(filters_)
+        return filters

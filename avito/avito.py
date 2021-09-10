@@ -64,6 +64,10 @@ class Avito:
             criterion["params[110005]"] = self.mapper.models[crit['mark']][crit['model']][crit['generation']]['api']
         if 'mileage_max' in crit:
             criterion["params[1375-to-int]"] = crit['mileage_max']
+        if 'price_from' in crit:
+            criterion["priceMin"] = crit['price_from']
+        if 'price_to' in crit:
+            criterion["priceMax"] = crit['price_to']
         return criterion
 
     def prepare_search_params(self, params: dict) -> list:  # list of requests instead of 1 like in autoru
@@ -77,9 +81,11 @@ class Avito:
                                         "params[1283]": 14756,
                                         "locationId": region,
                                         "localPriority": 1,
-                                        **filter_,
                                         "priceMin": params['price_from'],
                                         "priceMax": params['price_to'],
+                                        "params[188-from-int]": params['year_from'],
+                                        "params[188-to-int]": params['year_to'],
+                                        **filter_,
                                         "sort": "date",
                                         "isGeoProps": True,
                                         "forceLocation": True,
